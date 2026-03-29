@@ -1,0 +1,151 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout title="Nouvelle Campagne - Hadi Admin">
+  <div class="max-w-4xl mx-auto px-4 py-12">
+    <nav class="flex text-sm text-gray-500 mb-8" aria-label="Breadcrumb">
+      <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li class="inline-flex items-center">
+          <a href="/admin" class="hover:text-blue-600 transition tracking-tight font-medium">Dashboard Admin</a>
+        </li>
+        <li>
+          <div class="flex items-center">
+            <span class="mx-2 text-gray-400">/</span>
+            <span class="font-medium text-gray-800">Nouvelle Campagne</span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+
+    <header class="mb-12">
+      <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">
+        Créer une <span class="text-indigo-600">Campagne</span>
+      </h1>
+      <p class="text-gray-500 mt-2 italic font-medium">Définissez une nouvelle bannière publicitaire sur Hadi.</p>
+    </header>
+
+    <form id="campaign-form" class="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 space-y-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Main Info -->
+        <div class="space-y-6">
+          <h2 class="text-xl font-bold text-gray-800 border-b border-gray-100 pb-2">Informations de Base</h2>
+          <div>
+            <label for="title" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Titre de la Campagne</label>
+            <input type="text" id="title" name="title" required class="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="Ex: Promotion Clinique Boum">
+          </div>
+          <div>
+            <label for="image_url" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">URL de l'Image (Banner)</label>
+            <input type="url" id="image_url" name="image_url" required class="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="https://image-hosting.com/banner.jpg">
+          </div>
+          <div>
+            <label for="target_url" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">URL de Destination</label>
+            <input type="url" id="target_url" name="target_url" required class="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="https://hadi.cm/clinique/votre-clinique">
+          </div>
+        </div>
+
+        <!-- Targeting -->
+        <div class="space-y-6">
+          <h2 class="text-xl font-bold text-gray-800 border-b border-gray-100 pb-2">Ciblage & Placement</h2>
+          <div>
+            <label for="page_placement" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Emplacement</label>
+            <select id="page_placement" name="page_placement" class="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-indigo-500 transition cursor-pointer">
+              <option value="home">Page d'Accueil (Large Banner)</option>
+              <option value="listing">Résultats de Recherche</option>
+              <option value="sidebar">Barre Latérale (Fiche Clinique)</option>
+            </select>
+          </div>
+          <div>
+            <label for="specialty_target" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Spécialité Cible (Optionnel)</label>
+            <input type="text" id="specialty_target" name="specialty_target" class="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="Ex: cardiologie">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="end_date" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Date de Fin</label>
+              <input type="date" id="end_date" name="end_date" class="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-indigo-500 transition">
+            </div>
+            <div class="flex items-center pt-8">
+              <label class="inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="active" name="active" checked class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 w-5 h-5">
+                <span class="ml-3 text-sm font-bold text-gray-600 uppercase tracking-widest">Active par défaut</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-8 border-t border-gray-100 flex justify-end gap-4">
+        <a href="/admin" class="px-8 py-4 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition tracking-tight">Annuler</a>
+        <button type="submit" id="submit-btn" class="px-12 py-4 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition transform active:scale-95 flex items-center gap-3">
+          <span id="btn-text">Créer la Campagne</span>
+          <span id="btn-loader" class="hidden animate-spin">⏳</span>
+        </button>
+      </div>
+    </form>
+
+    <!-- Preview Section -->
+    <div class="mt-12 space-y-4">
+      <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest text-center">Aperçu en direct</h2>
+      <div id="banner-preview" class="h-48 bg-gray-200 rounded-3xl overflow-hidden relative flex items-center justify-center text-gray-400 italic">
+        L'aperçu de votre bannière s'affichera ici...
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { supabase } from '../../../lib/supabase';
+
+    const form = document.getElementById('campaign-form') as HTMLFormElement;
+    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+    const btnText = document.getElementById('btn-text');
+    const btnLoader = document.getElementById('btn-loader');
+    const imageUrlInput = document.getElementById('image_url') as HTMLInputElement;
+    const previewDiv = document.getElementById('banner-preview');
+
+    // Simple preview update
+    imageUrlInput?.addEventListener('input', (e) => {
+      const url = (e.target as HTMLInputElement).value;
+      if (url && previewDiv) {
+        previewDiv.innerHTML = `<img src="${url}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/800x400?text=Image+Invalide'"/>`;
+      }
+    });
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // UI Loading state
+      if (submitBtn) submitBtn.disabled = true;
+      if (btnText) btnText.textContent = "Création en cours...";
+      btnLoader?.classList.remove('hidden');
+
+      const formData = new FormData(form);
+      const data = {
+        title: formData.get('title'),
+        image_url: formData.get('image_url'),
+        target_url: formData.get('target_url'),
+        page_placement: formData.get('page_placement'),
+        specialty_target: formData.get('specialty_target') || null,
+        active: formData.get('active') === 'on',
+        end_date: formData.get('end_date') || null,
+      };
+
+      try {
+        const { error } = await supabase
+          .from('campaigns')
+          .insert(data);
+
+        if (error) {
+          throw error;
+        }
+
+        alert('✅ Campagne créée avec succès !');
+        window.location.href = '/admin';
+      } catch (err: any) {
+        alert('❌ Erreur: ' + err.message);
+        if (submitBtn) submitBtn.disabled = false;
+        if (btnText) btnText.textContent = "Créer la Campagne";
+        btnLoader?.classList.add('hidden');
+      }
+    });
+  </script>
+</Layout>

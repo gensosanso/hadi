@@ -1,0 +1,171 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { supabase } from '../../lib/supabase';
+
+// Admin check: you can add email check here later
+// For now, let's list all clinics to manage their plans
+const { data: clinics, error } = await supabase
+  .from('clinics_enriched')
+  .select('id, nom, slug, plan, verified, featured_order, quartier')
+  .order('nom', { ascending: true });
+
+// Also fetch campaigns
+const { data: campaigns } = await supabase
+  .from('campaigns')
+  .select('*')
+  .order('created_at', { ascending: false });
+
+// Fetch basic analytics counts
+const { data: events } = await supabase
+  .from('analytics_events')
+  .select('event_type, clinic_slug');
+
+// Process analytics per clinic
+const clinicStats = events?.reduce((acc: Record<string, any>, curr) => {
+  if (!acc[curr.clinic_slug]) {
+    acc[curr.clinic_slug] = { views: 0, clicks: 0 };
+  }
+  if (curr.event_type === 'view') acc[curr.clinic_slug].views++;
+  if (curr.event_type === 'call_click' || curr.event_type === 'route_click') acc[curr.clinic_slug].clicks++;
+  return acc;
+}, {});
+
+---
+
+<Layout title="Dashboard Admin - Hadi">
+  <div class="max-w-7xl mx-auto px-4 py-12">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+      <div>
+        <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">
+          Admin <span class="text-blue-600">Dashboard</span>
+        </h1>
+        <p class="text-gray-500 mt-2 italic font-medium">Gérez la visibilité et la monétisation de Hadi.</p>
+      </div>
+      
+      <div class="flex gap-4">
+        <a 
+          href="/admin/campaign/new"
+          class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition transform active:scale-95 text-center flex items-center justify-center"
+        >
+          + Nouvelle Campagne
+        </a>
+      </div>
+    </header>
+
+    <div class="grid grid-cols-1 xl:grid-cols-4 gap-8">
+      <!-- Left: Sidebar / Stats -->
+      <aside class="xl:col-span-1 space-y-6">
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+          <h2 class="text-lg font-bold text-gray-800 mb-6">Statistiques Globales</h2>
+          <div class="space-y-4">
+            <div class="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+              <p class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Total Cliniques</p>
+              <p class="text-3xl font-extrabold text-blue-700">{clinics?.length || 0}</p>
+            </div>
+            <div class="p-4 bg-amber-50 rounded-2xl border border-amber-100">
+              <p class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-1">Premium / Sponsor</p>
+              <p class="text-3xl font-extrabold text-amber-600">
+                {clinics?.filter(c => c.plan === 'premium' || c.plan === 'sponsor').length || 0}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 text-white shadow-xl">
+          <h2 class="text-lg font-bold mb-4">Campagnes Actives</h2>
+          <p class="text-sm opacity-70 mb-6">Gérez vos bannières publicitaires en cours.</p>
+          {campaigns?.length === 0 ? (
+            <p class="text-xs italic opacity-50 text-center py-4 bg-white/5 rounded-2xl">Aucune campagne active.</p>
+          ) : (
+            <div class="space-y-4">
+              {campaigns?.map(c => (
+                <div class="group relative overflow-hidden bg-white/5 rounded-2xl p-4 border border-white/10 hover:border-indigo-400 transition">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class={`w-2 h-2 rounded-full ${c.active ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500 opacity-50'}`}></span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest opacity-50">{c.page_placement}</span>
+                  </div>
+                  <p class="font-bold text-sm mb-1 truncate">{c.title}</p>
+                  <div class="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
+                    <span class="text-[10px] opacity-40 font-mono">ID: {c.id.substring(0, 8)}</span>
+                    <a href={`/admin/campaign/edit?id=${c.id}`} class="text-[10px] font-bold text-indigo-400 hover:text-white transition uppercase tracking-widest">Modifier →</a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </aside>
+
+      <!-- Right: Main Table -->
+      <main class="xl:col-span-3">
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <h2 class="text-xl font-bold text-gray-800">Gestion des Établissements</h2>
+            <div class="relative w-full md:w-auto">
+              <input 
+                type="text" 
+                placeholder="Filtrer..." 
+                class="w-full md:w-64 px-4 py-2 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-blue-500 text-sm transition"
+              />
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="bg-gray-50 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">
+                  <th class="px-6 py-4">Clinique</th>
+                  <th class="px-6 py-4">Quartier</th>
+                  <th class="px-6 py-4">Vues / Clics</th>
+                  <th class="px-6 py-4">Plan / Niveau</th>
+                  <th class="px-6 py-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 text-sm">
+                {clinics?.map((clinic) => {
+                  const stats = clinicStats?.[clinic.slug] || { views: 0, clicks: 0 };
+                  return (
+                    <tr class="hover:bg-gray-50 transition group">
+                      <td class="px-6 py-4">
+                        <p class="font-bold text-gray-800 group-hover:text-blue-600 transition">{clinic.nom}</p>
+                        <p class="text-xs text-gray-400 italic">/{clinic.slug}</p>
+                      </td>
+                      <td class="px-6 py-4 text-gray-500">{clinic.quartier || 'Non défini'}</td>
+                      <td class="px-6 py-4">
+                        <div class="flex gap-4">
+                          <span class="text-blue-600 font-bold">👁️ {stats.views}</span>
+                          <span class="text-green-600 font-bold">🔘 {stats.clicks}</span>
+                        </div>
+                      </td>
+                      <td class="px-6 py-4">
+                      <span class={`
+                        px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
+                        ${clinic.plan === 'free' ? 'bg-gray-100 text-gray-500' : ''}
+                        ${clinic.plan === 'standard' ? 'bg-blue-50 text-blue-600' : ''}
+                        ${clinic.plan === 'premium' ? 'bg-amber-50 text-amber-600 border border-amber-100' : ''}
+                        ${clinic.plan === 'sponsor' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : ''}
+                      `}>
+                        {clinic.plan}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex gap-2">
+                        <button class="p-2 bg-gray-50 text-gray-400 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">
+                          ⚙️
+                        </button>
+                        <button class="p-2 bg-gray-50 text-gray-400 rounded-lg hover:bg-amber-50 hover:text-amber-600 transition">
+                          ⭐
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</Layout>

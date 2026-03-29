@@ -1,0 +1,201 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ClinicCard from '../components/ClinicCard.astro';
+import { supabase } from '../lib/supabase';
+
+// Fetch clinics from Supabase
+const { data: rawClinics, error } = await supabase
+  .from('clinics_enriched')
+  .select('*');
+
+// Custom sorting: Sponsor (3) > Premium (2) > Standard (1) > Free (0)
+const planWeight = { sponsor: 3, premium: 2, standard: 1, free: 0 };
+const clinics = rawClinics?.sort((a, b) => {
+  const weightA = planWeight[a.plan as keyof typeof planWeight] || 0;
+  const weightB = planWeight[b.plan as keyof typeof planWeight] || 0;
+  
+  if (weightA !== weightB) return weightB - weightA;
+  
+  // Secondary sort by featured_order
+  if ((a.featured_order || 99) !== (b.featured_order || 99)) {
+    return (a.featured_order || 99) - (b.featured_order || 99);
+  }
+  
+  return a.nom.localeCompare(b.nom);
+}) || [];
+
+// Fetch active campaigns for home
+const { data: homeCampaigns } = await supabase
+  .from('campaigns')
+  .select('*')
+  .eq('active', true)
+  .eq('page_placement', 'home')
+  .limit(1);
+
+const campaign = homeCampaigns?.[0];
+
+if (error) {
+  console.error('Error fetching clinics:', error.message);
+}
+---
+
+<Layout title="Trouver une clinique à Douala">
+  <!-- Campaign Banner (if any) -->
+  {campaign && (
+    <div class="container mx-auto px-4 mb-8">
+      <a href={campaign.target_url} target="_blank" class="block relative overflow-hidden rounded-3xl h-32 md:h-48 shadow-lg group">
+        <img src={campaign.image_url} alt={campaign.title} class="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
+        <div class="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex items-center p-8">
+          <div class="text-white">
+            <span class="bg-amber-400 text-black text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest mb-2 inline-block">Sponsorisé</span>
+            <h3 class="text-xl md:text-3xl font-extrabold">{campaign.title}</h3>
+            <p class="text-sm opacity-80 mt-1 hidden md:block">Découvrez nos services spécialisés</p>
+          </div>
+        </div>
+      </a>
+    </div>
+  )}
+
+	<section class="max-w-4xl mx-auto text-center mb-16 py-12 px-6 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl shadow-2xl relative overflow-hidden group">
+    <!-- Decorative elements -->
+    <div class="absolute -top-12 -right-12 w-48 h-48 bg-white opacity-10 rounded-full group-hover:scale-110 transition-transform duration-700"></div>
+    <div class="absolute -bottom-12 -left-12 w-32 h-32 bg-white opacity-5 rounded-full group-hover:scale-125 transition-transform duration-700"></div>
+
+		<h1 class="text-4xl md:text-5xl font-extrabold mb-6 text-white tracking-tight drop-shadow-md">
+			La Santé à Douala <br/> <span class="text-blue-200 italic underline decoration-blue-400 underline-offset-8">en un clic</span>.
+		</h1>
+		<p class="text-lg md:text-xl text-blue-50 max-w-2xl mx-auto leading-relaxed opacity-90">
+			Trouvez, localisez et contactez facilement les meilleures cliniques et hôpitaux de la capitale économique.
+		</p>
+    
+    <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
+      <div class="relative w-full max-w-md">
+        <input 
+          id="clinic-search"
+          type="text" 
+          placeholder="Rechercher une spécialité ou un nom..." 
+          class="w-full px-6 py-4 rounded-xl border-2 border-transparent focus:border-blue-400 focus:outline-none text-gray-800 shadow-xl pr-12 transition-all"
+        />
+        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-2xl">🔍</span>
+      </div>
+      <button class="px-8 py-4 bg-white text-blue-700 font-bold rounded-xl shadow-xl hover:bg-blue-50 transition-all transform active:scale-95">
+        Trouver
+      </button>
+    </div>
+    
+    <div class="mt-8 flex flex-wrap gap-3 justify-center text-sm">
+      <span class="text-blue-100 font-medium">Recherches fréquentes:</span>
+      <button data-tag="cardiologie" class="search-tag px-3 py-1 bg-white/20 rounded-full text-white hover:bg-white/30 transition backdrop-blur-sm border border-white/10">Cardiologie</button>
+      <button data-tag="pédiatrie" class="search-tag px-3 py-1 bg-white/20 rounded-full text-white hover:bg-white/30 transition backdrop-blur-sm border border-white/10">Pédiatrie</button>
+      <button data-tag="gynécologie" class="search-tag px-3 py-1 bg-white/20 rounded-full text-white hover:bg-white/30 transition backdrop-blur-sm border border-white/10">Gynécologie</button>
+    </div>
+	</section>
+
+	<section class="mb-16">
+		<h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+			<span class="text-blue-600">📍</span> Explorer par quartier
+		</h2>
+		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+			{['Akwa II', 'Bonanjo', 'Bell', 'Bonabéri', 'Cite des Palmiers', 'Bépanda'].map((q) => (
+				<a 
+					href={`/quartier/${q.toLowerCase().replace(/\s+/g, '-')}`}
+					class="bg-white border border-gray-100 p-4 rounded-xl text-center shadow-sm hover:shadow-md hover:border-blue-200 transition group"
+				>
+					<p class="font-bold text-gray-800 group-hover:text-blue-600 transition tracking-tight">{q}</p>
+					<p class="text-xs text-gray-400 mt-1 uppercase font-semibold">Voir les cliniques</p>
+				</a>
+			))}
+		</div>
+	</section>
+
+	<section>
+		<div class="flex items-end justify-between mb-8 pb-4 border-b border-gray-100">
+			<div>
+				<h2 class="text-3xl font-bold text-gray-800 tracking-tight">Établissements de santé</h2>
+				<p class="text-gray-500 mt-1 italic font-medium"><span id="results-count">{clinics?.length || 0}</span> cliniques répertoriées</p>
+			</div>
+			<div class="hidden sm:flex items-center gap-2">
+				<span class="text-sm text-gray-400">Trier par:</span>
+				<select id="sort-select" class="bg-gray-100 border-none rounded-lg text-sm px-3 py-1 focus:ring-0 cursor-pointer">
+					<option value="pertinence">Pertinence</option>
+					<option value="alphabetique">Ordre alphabétique</option>
+				</select>
+			</div>
+		</div>
+
+		{error ? (
+			<div class="bg-red-50 border border-red-200 text-red-700 p-6 rounded-2xl flex items-center gap-4 animate-pulse">
+				<span class="text-4xl">⚠️</span>
+				<p class="font-medium text-lg">Erreur lors de la récupération des cliniques. Veuillez réessayer plus tard.</p>
+			</div>
+		) : (
+			<div id="clinics-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+				{clinics?.map((clinic) => (
+					<ClinicCard clinic={clinic} />
+				))}
+			</div>
+		)}
+
+    <!-- Empty state search -->
+    <div id="no-results" class="hidden text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+      <p class="text-4xl mb-4">🩺</p>
+      <h3 class="text-xl font-bold text-gray-800">Aucun établissement trouvé</h3>
+      <p class="text-gray-500 mt-2">Essayez de modifier votre recherche ou vos filtres.</p>
+      <button id="reset-search" class="mt-6 text-blue-600 font-bold hover:underline">Réinitialiser la recherche</button>
+    </div>
+	</section>
+
+  <script>
+    const searchInput = document.getElementById('clinic-search') as HTMLInputElement;
+    const clinicsGrid = document.getElementById('clinics-grid');
+    const clinicCards = document.querySelectorAll('.clinic-card');
+    const resultsCount = document.getElementById('results-count');
+    const noResults = document.getElementById('no-results');
+    const searchTags = document.querySelectorAll('.search-tag');
+    const resetBtn = document.getElementById('reset-search');
+
+    function filterClinics() {
+      const searchTerm = searchInput.value.toLowerCase().trim();
+      let visibleCount = 0;
+
+      clinicCards.forEach((card) => {
+        const searchData = card.getAttribute('data-search') || '';
+        const isVisible = searchData.includes(searchTerm);
+        
+        if (isVisible) {
+          (card as HTMLElement).style.display = 'flex';
+          visibleCount++;
+        } else {
+          (card as HTMLElement).style.display = 'none';
+        }
+      });
+
+      // Update count & empty state
+      if (resultsCount) resultsCount.textContent = visibleCount.toString();
+      
+      if (visibleCount === 0) {
+        clinicsGrid?.classList.add('hidden');
+        noResults?.classList.remove('hidden');
+      } else {
+        clinicsGrid?.classList.remove('hidden');
+        noResults?.classList.add('hidden');
+      }
+    }
+
+    searchInput?.addEventListener('input', filterClinics);
+
+    searchTags.forEach(tag => {
+      tag.addEventListener('click', () => {
+        const value = tag.getAttribute('data-tag') || '';
+        searchInput.value = value;
+        filterClinics();
+      });
+    });
+
+    resetBtn?.addEventListener('click', () => {
+      searchInput.value = '';
+      filterClinics();
+    });
+  </script>
+</Layout>
+</Layout>

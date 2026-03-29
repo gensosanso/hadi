@@ -1,0 +1,263 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { supabase } from '../../lib/supabase';
+
+export async function getStaticPaths() {
+  const { data: clinics } = await supabase
+    .from('clinics_enriched')
+    .select('slug');
+
+  return clinics?.map((clinic) => ({
+    params: { slug: clinic.slug },
+  })) || [];
+}
+
+const { slug } = Astro.params;
+
+// Fetch full clinic data
+const { data: clinic, error } = await supabase
+  .from('clinics_enriched')
+  .select('*')
+  .eq('slug', slug)
+  .single();
+
+if (error || !clinic) {
+  return Astro.redirect('/404');
+}
+
+// Fetch reviews for this clinic
+const { data: reviews } = await supabase
+  .from('reviews')
+  .select('*')
+  .eq('clinic_slug', slug)
+  .order('created_at', { ascending: false });
+
+// Formatting helpers
+const formatSpecialties = (types: string[] | null) => {
+  if (!types) return [];
+  const exclude = ['point_of_interest', 'establishment', 'health'];
+  return types
+    .filter(t => !exclude.includes(t))
+    .map(t => t.replace(/_/g, ' ').charAt(0).toUpperCase() + t.slice(1).replace(/_/g, ' '));
+};
+
+const specialties = formatSpecialties(clinic.specialites);
+---
+
+<Layout 
+  title={clinic.nom} 
+  description={`Consultez les informations, spécialités et localisation de ${clinic.nom} à Douala.`}
+>
+  <div class="max-w-5xl mx-auto px-4 py-8">
+    <nav class="flex text-sm text-gray-500 mb-8" aria-label="Breadcrumb">
+      <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li class="inline-flex items-center">
+          <a href="/" class="hover:text-blue-600 transition">Accueil</a>
+        </li>
+        <li>
+          <div class="flex items-center">
+            <span class="mx-2 text-gray-400">/</span>
+            <span class="font-medium text-gray-800">{clinic.nom}</span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Main Content -->
+      <div class="lg:col-span-2 space-y-8">
+        <header class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <div class="flex items-center gap-3 mb-2">
+                <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+                  {clinic.nom}
+                </h1>
+                {clinic.verified && (
+                  <span class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Vérifié</span>
+                )}
+              </div>
+              <p class="text-blue-600 font-medium flex items-center gap-2">
+                📍 Douala, Cameroun
+              </p>
+              {clinic.rating && (
+                <div class="mt-2 flex items-center gap-2 text-sm font-bold text-amber-500">
+                  <span class="text-lg">⭐ {clinic.rating}</span>
+                  <span class="text-gray-400 font-normal">({clinic.user_rating_count} avis Google)</span>
+                </div>
+              )}
+            </div>
+            
+            <div class="flex flex-wrap gap-3">
+              <button 
+                id="btn-call"
+                class="flex-1 md:flex-none px-6 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition transform active:scale-95"
+              >
+                Appeler
+              </button>
+              <a 
+                id="btn-route"
+                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(clinic.nom)}&destination_place_id=${clinic.place_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex-1 md:flex-none px-6 py-3 bg-white border-2 border-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition transform active:scale-95 text-center flex items-center justify-center"
+              >
+                Itinéraire
+              </a>
+            </div>
+          </div>
+
+          <div class="mt-8 flex flex-wrap gap-2">
+            {specialties.length > 0 ? (
+              specialties.map(spec => (
+                <span class="bg-blue-50 text-blue-700 text-sm px-4 py-1.5 rounded-full border border-blue-100">
+                  {spec}
+                </span>
+              ))
+            ) : (
+              <span class="bg-gray-100 text-gray-600 text-sm px-4 py-1.5 rounded-full">Médecine Générale</span>
+            )}
+          </div>
+        </header>
+
+        <section class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+          <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+            <span class="text-blue-600">📍</span> Localisation
+          </h2>
+          <div class="rounded-2xl overflow-hidden border border-gray-100 shadow-inner h-[400px] bg-gray-50 relative">
+            <iframe
+              width="100%"
+              height="100%"
+              style="border:0"
+              loading="lazy"
+              allowfullscreen
+              referrerpolicy="no-referrer-when-downgrade"
+              src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.GOOGLE_PLACES_API_KEY}&q=place_id:${clinic.place_id}`}>
+            </iframe>
+          </div>
+          <div class="mt-4 p-4 bg-blue-50 rounded-xl flex items-center gap-3 text-blue-800 text-sm italic font-medium">
+            <span>ℹ️</span>
+            <p>Cliquez sur "Agrandir le plan" pour obtenir l'itinéraire exact depuis votre position.</p>
+          </div>
+        </section>
+
+        <section class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+          <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+            <span class="text-blue-600">📝</span> À propos
+          </h2>
+          <div class="prose prose-blue max-w-none text-gray-600 leading-relaxed">
+            <p>
+              {clinic.description_custom || `${clinic.nom} est un établissement de santé situé à Douala, engagé à fournir des soins de qualité à la population camerounaise. Nous mettons à jour régulièrement les informations pour vous offrir un service optimal.`}
+            </p>
+          </div>
+        </section>
+
+        <!-- Reviews Section -->
+        <section class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+          <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
+              <span class="text-amber-400">⭐</span> Avis utilisateurs
+            </h2>
+            <div class="text-right">
+              {clinic.rating && (
+                <p class="text-2xl font-extrabold text-gray-900 leading-none">{clinic.rating}/5</p>
+              )}
+              <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mt-1">{clinic.user_rating_count || 0} avis au total</p>
+            </div>
+          </div>
+
+          {reviews && reviews.length > 0 ? (
+            <div class="space-y-6">
+              {reviews.map((review) => (
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                  <div class="flex items-center justify-between mb-3">
+                    <p class="font-bold text-gray-900">{review.author_name}</p>
+                    <div class="flex items-center gap-1 text-amber-400">
+                      {[...Array(5)].map((_, i) => (
+                        <span class={i < review.rating ? "opacity-100" : "opacity-20 text-gray-400"}>★</span>
+                      ))}
+                    </div>
+                  </div>
+                  <p class="text-gray-600 leading-relaxed italic">
+                    {review.comment || "Cet utilisateur n'a pas laissé de commentaire écrit."}
+                  </p>
+                  <p class="text-[10px] text-gray-400 mt-4 font-bold uppercase tracking-widest">
+                    Posté le {new Date(review.created_at || '').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div class="text-center py-12 border border-dashed border-gray-200 rounded-3xl">
+              <p class="text-gray-500 italic">Aucun avis pour le moment. Soyez le premier à partager votre expérience !</p>
+              <button class="mt-6 px-6 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition">Donner mon avis</button>
+            </div>
+          )}
+        </section>
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="space-y-8">
+        <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 sticky top-8">
+          <h2 class="text-xl font-bold text-gray-800 mb-6">Informations Utiles</h2>
+          <ul class="space-y-4">
+            <li class="flex items-start gap-4">
+              <span class="bg-blue-50 p-2 rounded-lg text-blue-600">⏰</span>
+              <div>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Horaires</p>
+                <p class="text-gray-700 font-medium italic">Ouvert 24h/24</p>
+              </div>
+            </li>
+            <li class="flex items-start gap-4">
+              <span class="bg-green-50 p-2 rounded-lg text-green-600">📞</span>
+              <div>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Téléphone</p>
+                <p class="text-gray-700 font-medium italic">Non communiqué</p>
+              </div>
+            </li>
+            <li class="flex items-start gap-4">
+              <span class="bg-purple-50 p-2 rounded-lg text-purple-600">⭐</span>
+              <div>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Note Google</p>
+                <p class="text-gray-700 font-medium italic">Données en cours...</p>
+              </div>
+            </li>
+          </ul>
+
+          <div class="mt-8 pt-8 border-t border-gray-100">
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white relative overflow-hidden">
+              <div class="relative z-10">
+                <p class="font-bold text-lg mb-2 leading-tight">Vous travaillez chez {clinic.nom} ?</p>
+                <p class="text-sm opacity-80 mb-4">Gérez votre profil et améliorez votre visibilité.</p>
+                <button class="w-full py-2 bg-white text-blue-700 rounded-lg font-bold text-sm shadow-xl transform active:scale-95 transition">
+                  Réclamer la fiche
+                </button>
+              </div>
+              <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    import { trackEvent } from '../../lib/analytics';
+    
+    // Track Page View (View)
+    const slug = window.location.pathname.split('/').pop() || '';
+    trackEvent('view', slug);
+
+    // Track Call Click
+    document.getElementById('btn-call')?.addEventListener('click', () => {
+      trackEvent('call_click', slug);
+      // For now, let's show a toast or alert since no real number is stored
+      alert("Demande d'appel enregistrée ! (Le numéro sera bientôt disponible pour cet établissement)");
+    });
+
+    // Track Route Click
+    document.getElementById('btn-route')?.addEventListener('click', () => {
+      trackEvent('route_click', slug);
+    });
+  </script>
+</Layout>

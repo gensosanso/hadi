@@ -1,0 +1,65 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout 
+  title="Contactez-nous" 
+  description="Une clinique à ajouter ? Une erreur à signaler ? Contactez l'équipe de Hadi."
+>
+  <div class="max-w-4xl mx-auto px-4 py-12">
+    <header class="mb-12 text-center">
+      <h1 class="text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">
+        Une <span class="text-blue-600">Question</span> ?
+      </h1>
+      <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+        Nous sommes là pour vous aider à améliorer l'accès aux soins de santé à Douala.
+      </p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+      <div class="space-y-8">
+        <section class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+          <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-3">
+            <span class="text-blue-600">📧</span> Par Email
+          </h2>
+          <p class="text-gray-600 leading-relaxed mb-4">
+            Pour toute demande de partenariat, signalement d'erreur ou ajout d'établissement.
+          </p>
+          <a href="mailto:contact@hadi.cm" class="text-xl font-bold text-blue-600 hover:underline">
+            contact@hadi.cm
+          </a>
+        </section>
+
+        <section class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+          <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-3">
+            <span class="text-green-600">📱</span> Par WhatsApp
+          </h2>
+          <p class="text-gray-600 leading-relaxed mb-4">
+            Pour une réponse plus rapide ou un support technique.
+          </p>
+          <a href="https://wa.me/237XXXXXXXXX" target="_blank" class="text-xl font-bold text-green-600 hover:underline">
+            +237 6XX XXX XXX
+          </a>
+        </section>
+      </div>
+
+      <form class="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 space-y-6">
+        <div>
+          <label for="name" class="block text-sm font-bold text-gray-700 uppercase tracking-widest mb-2">Nom Complet</label>
+          <input type="text" id="name" class="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Votre nom...">
+        </div>
+        <div>
+          <label for="email" class="block text-sm font-bold text-gray-700 uppercase tracking-widest mb-2">Email</label>
+          <input type="email" id="email" class="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-blue-500 transition" placeholder="votre@email.com">
+        </div>
+        <div>
+          <label for="message" class="block text-sm font-bold text-gray-700 uppercase tracking-widest mb-2">Message</label>
+          <textarea id="message" rows="4" class="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Votre message..."></textarea>
+        </div>
+        <button type="submit" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition transform active:scale-95">
+          Envoyer le message
+        </button>
+      </form>
+    </div>
+  </div>
+</Layout>

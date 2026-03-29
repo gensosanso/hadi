@@ -1,0 +1,71 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { supabase } from '../lib/supabase';
+
+// Fetch all unique neighborhoods from the database
+const { data: clinics, error } = await supabase
+  .from('clinics_enriched')
+  .select('quartier')
+  .not('quartier', 'is', null);
+
+// Count clinics per neighborhood
+const neighborhoodCounts = clinics?.reduce((acc: Record<string, number>, curr) => {
+  if (curr.quartier) {
+    acc[curr.quartier] = (acc[curr.quartier] || 0) + 1;
+  }
+  return acc;
+}, {});
+
+const sortedQuartiers = Object.entries(neighborhoodCounts || {})
+  .sort((a, b) => b[1] - a[1]); // Sort by clinic count
+---
+
+<Layout 
+  title="Explorer les Quartiers de Douala" 
+  description="Trouvez une clinique ou un hôpital par quartier à Douala : Akwa, Bonanjo, Bonamoussadi, Bépanda, etc."
+>
+  <div class="max-w-5xl mx-auto px-4 py-12">
+    <header class="mb-12 text-center">
+      <h1 class="text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">
+        Santé par <span class="text-blue-600">Quartier</span>
+      </h1>
+      <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+        Accédez rapidement aux établissements de santé les plus proches de chez vous en explorant les différentes zones de Douala.
+      </p>
+    </header>
+
+    {error ? (
+      <div class="bg-red-50 text-red-700 p-6 rounded-2xl text-center">
+        Impossible de charger les quartiers pour le moment.
+      </div>
+    ) : (
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {sortedQuartiers.map(([name, count]) => (
+          <a 
+            href={`/quartier/${name.toLowerCase().replace(/\s+/g, '-')}`}
+            class="group bg-white border border-gray-100 p-8 rounded-3xl shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <div class="flex justify-between items-start mb-4">
+              <span class="text-3xl">📍</span>
+              <span class="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                {count} {count > 1 ? 'Cliniques' : 'Clinique'}
+              </span>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 group-hover:text-blue-600 transition tracking-tight">
+              {name}
+            </h2>
+            <p class="text-gray-400 text-sm mt-2 italic group-hover:text-gray-500 transition">
+              Explorer cette zone →
+            </p>
+          </a>
+        ))}
+      </div>
+    )}
+
+    {sortedQuartiers.length === 0 && (
+      <div class="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+        <p class="text-gray-500">Aucun quartier répertorié pour le moment.</p>
+      </div>
+    )}
+  </div>
+</Layout>
