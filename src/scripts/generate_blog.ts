@@ -41,19 +41,20 @@ async function generateArticle(topic: string, publishInHours: number) {
     SUJET : ${topic}
     
     CONSIGNES DE CAMEROUNISATION :
-    1. Ancrage local : Mentionne des quartiers de Douala (Akwa, Bonapriso, Deïdo, Logpom, etc.).
-    2. Alimentation : Cite des aliments locaux (plantain, manioc, ndolè, huile de palme, kossam, etc.).
+    1. Ancrage local : Mentionne obligatoirement des quartiers de Douala (Akwa, Bonapriso, Deïdo, Logpom, Bépanda, etc.).
+    2. Alimentation : Cite des aliments locaux (plantain, manioc, ndolè, huile de palme, kossam, safou, etc.).
     3. Économie : Mentionne les coûts en FCFA et la réalité des soins de proximité.
     4. Ton : Bienveillant, informatif, accessible (pas trop clinique).
+    5. VISUELS : Inclus dans le 'content' HTML au moins une balise <img> avec une URL de type : https://loremflickr.com/800/450/health,africa,<keyword> où <keyword> est un mot-clé pertinent en anglais. Ajoute une légende sous l'image avec <figcaption>.
     
     STRUCTURE DE SORTIE (JSON UNIQUEMENT) :
     {
       "title": "Titre SEO captivant",
-      "excerpt": "Résumé court pour la liste du blog (150 caractères)",
-      "content": "Contenu HTML complet (utilisant h2, h3, p, strong, ul, li). Minimum 600 mots.",
+      "excerpt": "Résumé court et percutant pour la liste (150-200 caractères)",
+      "content": "Contenu HTML complet (h2, h3, p, strong, ul, li, img, figure, figcaption). Minimum 700 mots.",
       "specialty_tag": "La spécialité médicale la plus proche (ex: Cardiologie, Pédiatrie, Endocrinologie, etc.)",
-      "meta_description": "Description pour Google",
-      "image_keyword": "Un mot-clé précis en anglais pour trouver une image sur Unsplash (ex: 'african food', 'hospital room', 'mosquito net')"
+      "meta_description": "Description optimisée pour Google",
+      "image_keyword": "3-4 mots-clés anglais séparés par des virgules pour l'image principale (ex: 'african doctor, hospital, patient')"
     }
     
     Réponds UNIQUEMENT avec le JSON brut.

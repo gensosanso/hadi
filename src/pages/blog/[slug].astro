@@ -54,29 +54,31 @@ if (error || !post) {
     </nav>
 
     <header class="mb-12">
-      <div class="aspect-video md:aspect-[21/9] rounded-3xl overflow-hidden mb-8 relative group">
+      <div class="aspect-video md:aspect-[21/9] rounded-3xl overflow-hidden mb-8 relative group shadow-2xl">
         <img 
-          src={`https://source.unsplash.com/featured/1200x600?${post.main_image || 'health'}`} 
+          src={`https://loremflickr.com/1200/600/${encodeURIComponent(post.main_image || 'health,hospital')},africa/all`} 
           alt={post.title}
           class="w-full h-full object-cover transition duration-700 group-hover:scale-105"
         />
-        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-        <div class="absolute bottom-8 left-8 right-8">
-          <div class="flex items-center gap-4 mb-4">
-            <span class="bg-blue-600 text-white text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+        <div class="absolute bottom-6 left-6 right-6 md:bottom-10 md:left-10 md:right-10">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="bg-blue-600 text-white text-[10px] md:text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider shadow-lg">
               {post.specialty_tag || 'Santé'}
             </span>
-            <time class="text-sm font-bold text-gray-200 uppercase tracking-widest drop-shadow-md">
+            <span class="w-1.5 h-1.5 rounded-full bg-white/50"></span>
+            <time class="text-xs md:text-sm font-bold text-gray-200 uppercase tracking-widest drop-shadow-md">
               {new Date(post.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
             </time>
           </div>
-          <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight leading-tight drop-shadow-lg">
+          <h1 class="text-2xl md:text-5xl font-black text-white tracking-tight leading-tight drop-shadow-2xl max-w-4xl">
             {post.title}
           </h1>
         </div>
       </div>
       
-      <div class="p-6 bg-blue-50/50 rounded-2xl border-l-4 border-blue-600 italic text-gray-700">
+      <div class="p-6 md:p-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl border-l-8 border-blue-600 italic text-gray-700 text-lg shadow-sm">
+        <span class="text-4xl text-blue-200 font-serif leading-none h-4 block mb-2">"</span>
         {post.excerpt}
       </div>
     </header>
@@ -129,5 +131,22 @@ if (error || !post) {
     list-style-type: disc;
     padding-left: 1.5rem;
     margin-bottom: 1.5rem;
+  }
+  .prose figure {
+    margin: 3rem 0;
+    text-align: center;
+  }
+  .prose img {
+    border-radius: 1.5rem;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    margin: 0 auto;
+    border: 1px solid #f3f4f6;
+  }
+  .prose figcaption {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-style: italic;
+    font-weight: 500;
   }
 </style>
