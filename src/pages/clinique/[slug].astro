@@ -3,15 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import { supabase } from '../../lib/supabase';
 import PhotoCarousel from '../../components/PhotoCarousel.astro';
 
-export async function getStaticPaths() {
-  const { data: clinics } = await supabase
-    .from('clinics_enriched')
-    .select('slug');
-
-  return clinics?.map((clinic) => ({
-    params: { slug: clinic.slug },
-  })) || [];
-}
+export const prerender = false;
 
 const { slug } = Astro.params;
 
@@ -43,12 +35,42 @@ const formatSpecialties = (types: string[] | null) => {
 };
 
 const specialties = formatSpecialties(clinic.specialites);
+
+// Analytics Metadata (SSR only)
+const geo = {
+  country: Astro.request.headers.get('x-vercel-ip-country') || 'CM',
+  city: Astro.request.headers.get('x-vercel-ip-city') || 'Douala',
+  device: Astro.request.headers.get('user-agent')?.includes('Mobi') ? 'Mobile' : 'Desktop'
+};
 ---
 
 <Layout 
-  title={clinic.nom} 
-  description={`Consultez les informations, spécialités et localisation de ${clinic.nom} à Douala.`}
+  title={`${clinic.nom} - Meilleure clinique à Douala (Santé)`}
+  description={`Besoin de soins à ${clinic.nom} ? Trouvez l'adresse, les spécialités, les avis et les horaires de cet établissement de santé à Douala.`}
 >
+  <script type="application/ld+json" slot="head" define:vars={{ clinic, specialties }}>
+    {
+      "@context": "https://schema.org",
+      "@type": "MedicalClinic",
+      "name": clinic.nom,
+      "description": clinic.description_custom || `${clinic.nom} est un établissement de santé de référence à Douala.`,
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Douala",
+        "addressCountry": "CM"
+      },
+      "url": `https://hadi.cm/clinique/${clinic.slug}`,
+      "medicalSpecialty": specialties,
+      ...(clinic.rating && {
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": clinic.rating,
+          "reviewCount": clinic.user_rating_count || 1
+        }
+      })
+    }
+  </script>
+
   <div class="max-w-5xl mx-auto px-4 py-8">
     <nav class="flex text-sm text-gray-500 mb-8" aria-label="Breadcrumb">
       <ol class="inline-flex items-center space-x-1 md:space-x-3">
@@ -149,9 +171,22 @@ const specialties = formatSpecialties(clinic.specialites);
             <span class="text-blue-600">📝</span> À propos
           </h2>
           <div class="prose prose-blue max-w-none text-gray-600 leading-relaxed">
-            <p>
-              {clinic.description_custom || `${clinic.nom} est un établissement de santé situé à Douala, engagé à fournir des soins de qualité à la population camerounaise. Nous mettons à jour régulièrement les informations pour vous offrir un service optimal.`}
-            </p>
+            {clinic.description_custom ? (
+              <p>{clinic.description_custom}</p>
+            ) : (
+              <div class="space-y-4">
+                <p>
+                  <strong>{clinic.nom}</strong> est un établissement de santé de référence situé à Douala, au Cameroun. 
+                  Spécialisé notamment en {specialties.slice(0, 3).join(', ') || 'soins généraux'}, cet établissement 
+                  s'engage à fournir des prestations médicales de qualité aux résidents de Douala et ses environs.
+                </p>
+                <p>
+                  L'équipe médicale de <strong>{clinic.nom}</strong> met tout en œuvre pour assurer une prise en charge 
+                  optimale des patients dans un environnement professionnel et bienveillant. Pour toute demande spécifique 
+                  ou prise de rendez-vous, nous vous recommandons de contacter directement l'établissement.
+                </p>
+              </div>
+            )}
           </div>
         </section>
 
@@ -208,21 +243,25 @@ const specialties = formatSpecialties(clinic.specialites);
               <span class="bg-blue-50 p-2 rounded-lg text-blue-600">⏰</span>
               <div>
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Horaires</p>
-                <p class="text-gray-700 font-medium italic">Ouvert 24h/24</p>
+                <p class="text-gray-700 font-medium italic">Ouvert 24h/24 (Urgence)</p>
               </div>
             </li>
             <li class="flex items-start gap-4">
               <span class="bg-green-50 p-2 rounded-lg text-green-600">📞</span>
               <div>
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Téléphone</p>
-                <p class="text-gray-700 font-medium italic">Non communiqué</p>
+                <p class="text-gray-700 font-medium italic">
+                  {clinic.phone_number || "Non communiqué"}
+                </p>
               </div>
             </li>
             <li class="flex items-start gap-4">
               <span class="bg-purple-50 p-2 rounded-lg text-purple-600">⭐</span>
               <div>
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Note Google</p>
-                <p class="text-gray-700 font-medium italic">Données en cours...</p>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Note Globale</p>
+                <p class="text-gray-700 font-medium italic">
+                  {clinic.rating ? `${clinic.rating}/5` : "Pas encore de note"}
+                </p>
               </div>
             </li>
           </ul>
@@ -244,23 +283,21 @@ const specialties = formatSpecialties(clinic.specialites);
     </div>
   </div>
 
-  <script>
+  <script define:vars={{ slug, geo }}>
     import { trackEvent } from '../../lib/analytics';
     
     // Track Page View (View)
-    const slug = window.location.pathname.split('/').pop() || '';
-    trackEvent('view', slug);
+    trackEvent('view', slug, window.location.pathname, geo);
 
     // Track Call Click
     document.getElementById('btn-call')?.addEventListener('click', () => {
-      trackEvent('call_click', slug);
-      // For now, let's show a toast or alert since no real number is stored
+      trackEvent('call_click', slug, window.location.pathname, geo);
       alert("Demande d'appel enregistrée ! (Le numéro sera bientôt disponible pour cet établissement)");
     });
 
     // Track Route Click
     document.getElementById('btn-route')?.addEventListener('click', () => {
-      trackEvent('route_click', slug);
+      trackEvent('route_click', slug, window.location.pathname, geo);
     });
   </script>
 </Layout>

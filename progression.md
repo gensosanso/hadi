@@ -71,9 +71,10 @@
 - *27/03/2026* : Initialisation du repo avec le cahier des charges officiel. Utilisation d'Astro 5 pour ses performances SEO supérieures.
 - *27/03/2026* : Choix de Supabase pour le backend (Auth, DB, Analytics).
 
+- *05/04/2026* : Génération de 5 articles basés sur les tendances Google Trends (Polio, Mpox Littoral, Santé Numérique 2026, Cardiologie Douala, Projet Cure 2). Articles camerounisés et publiés avec succès.
+
 ---
 
 ## 🚀 Prochaines Étapes
-1. Créer la structure du projet Astro.
-2. Configurer Supabase.
-3. Implémenter le script d'importation des données depuis Google Places vers Supabase.
+1. Continuer le monitoring des tendances quotidiennes.
+2. Optimiser le SEO des nouveaux articles générés.

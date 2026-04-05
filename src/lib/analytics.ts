@@ -5,10 +5,10 @@ export type EventType = 'view' | 'call_click' | 'route_click' | 'search';
 export async function trackEvent(
   eventType: EventType, 
   clinicSlug?: string, 
-  pageUrl?: string
+  pageUrl?: string,
+  extraData: { country?: string, city?: string, device?: string } = {}
 ) {
   try {
-    // Basic session fingerprint (using simple localStorage for demo)
     let sessionId = typeof window !== 'undefined' ? localStorage.getItem('hadi_session_id') : null;
     
     if (!sessionId && typeof window !== 'undefined') {
@@ -22,11 +22,14 @@ export async function trackEvent(
         event_type: eventType,
         clinic_slug: clinicSlug || 'global',
         page_url: pageUrl || (typeof window !== 'undefined' ? window.location.pathname : ''),
-        session_id: sessionId
+        session_id: sessionId,
+        country: extraData.country || 'Unknown',
+        city: extraData.city || 'Unknown',
+        device_type: extraData.device || 'Desktop'
       });
 
     if (error) console.error('Tracking error:', error.message);
   } catch (err) {
-    // Silent fail for analytics
+    // Silent fail
   }
 }

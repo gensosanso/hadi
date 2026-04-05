@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://hadi.cm/sitemap-index.xml
+Sitemap: https://hadi.cm/sitemap.xml

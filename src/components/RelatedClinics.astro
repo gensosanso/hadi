@@ -12,50 +12,64 @@ const { specialtyTag } = Astro.props;
 const { data: clinics } = await supabase
   .from('clinics_enriched')
   .select('nom, slug, rating, google_photos, quartier')
-  .contains('specialites', [specialtyTag.toLowerCase()])
+  .order('rating', { ascending: false })
   .limit(3);
 
 const googleApiKey = import.meta.env.GOOGLE_PLACES_API_KEY;
 ---
 
 {clinics && clinics.length > 0 && (
-  <div class="mt-16 bg-blue-50/50 rounded-3xl p-8 border border-blue-100">
-    <div class="flex items-center justify-between mb-8">
-      <h2 class="text-2xl font-bold text-gray-900">Cliniques recommandées à Douala</h2>
-      <span class="bg-blue-600 text-white text-[10px] px-3 py-1 rounded-full font-bold uppercase">
-        {specialtyTag}
-      </span>
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {clinics.map((clinic) => (
-        <a href={`/clinique/${clinic.slug}`} class="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition">
-          <div class="aspect-video bg-gray-100 overflow-hidden">
-            {clinic.google_photos && clinic.google_photos.length > 0 ? (
-              <img 
-                src={`https://places.googleapis.com/v1/${clinic.google_photos[0]}/media?key=${googleApiKey}&maxHeightPx=400`}
-                alt={clinic.nom}
-                class="w-full h-full object-cover group-hover:scale-110 transition duration-500"
-              />
-            ) : (
-              <div class="w-full h-full flex items-center justify-center text-2xl">🏥</div>
-            )}
-          </div>
-          <div class="p-4">
-            <h3 class="font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition truncate">{clinic.nom}</h3>
-            <div class="flex items-center justify-between text-xs text-gray-500">
-              <span class="flex items-center gap-1">📍 {clinic.quartier || 'Douala'}</span>
-              {clinic.rating && <span class="text-amber-500 font-bold">⭐ {clinic.rating}</span>}
-            </div>
-          </div>
+  <section class="mt-20 bg-gradient-to-br from-blue-600 to-indigo-800 rounded-[3rem] p-10 text-white relative overflow-hidden shadow-2xl">
+    <div class="relative z-10">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 pb-8 border-b border-white/10">
+        <div class="max-w-xl">
+          <span class="inline-block bg-blue-400/30 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-4 border border-white/20">
+            Besoin d'un avis médical ?
+          </span>
+          <h2 class="text-3xl md:text-4xl font-black tracking-tight leading-tight">
+            Trouvez un spécialiste en {specialtyTag} près de chez vous à Douala.
+          </h2>
+        </div>
+        <a href="/cliniques" class="px-8 py-4 bg-white text-blue-700 rounded-2xl font-black text-sm hover:bg-blue-50 transition transform active:scale-95 shadow-xl whitespace-nowrap">
+          Voir tout l'annuaire →
         </a>
-      ))}
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {clinics.map((clinic) => (
+          <a href={`/clinique/${clinic.slug}`} class="group bg-white/10 backdrop-blur-lg rounded-[2rem] overflow-hidden border border-white/10 hover:bg-white/20 transition-all duration-500 shadow-lg flex flex-col">
+            <div class="aspect-video bg-white/5 overflow-hidden relative">
+              {clinic.google_photos && clinic.google_photos.length > 0 ? (
+                <img 
+                  src={`https://places.googleapis.com/v1/${clinic.google_photos[0]}/media?key=${googleApiKey}&maxHeightPx=400`}
+                  alt={clinic.nom}
+                  class="w-full h-full object-cover group-hover:scale-110 transition duration-700 opacity-80 group-hover:opacity-100"
+                />
+              ) : (
+                <div class="w-full h-full flex items-center justify-center text-4xl">🏥</div>
+              )}
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
+            </div>
+            <div class="p-6 flex flex-col flex-1">
+              <h3 class="font-black text-lg mb-2 group-hover:text-blue-300 transition truncate">{clinic.nom}</h3>
+              <div class="flex items-center justify-between text-sm mt-auto">
+                <span class="flex items-center gap-2 font-bold opacity-80 uppercase tracking-widest text-[10px]">
+                  📍 {clinic.quartier || 'Douala'}
+                </span>
+                {clinic.rating && (
+                  <span class="bg-amber-400 text-amber-950 px-3 py-1 rounded-full font-black text-[10px] flex items-center gap-1 shadow-lg">
+                    ⭐ {clinic.rating}
+                  </span>
+                )}
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
     </div>
     
-    <div class="mt-8 text-center">
-      <a href="/cliniques" class="text-blue-600 font-bold text-sm hover:underline">
-        Voir toutes les cliniques spécialisées à Douala →
-      </a>
-    </div>
-  </div>
+    {/* Decorative Elements */}
+    <div class="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl"></div>
+  </section>
 )}

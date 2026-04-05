@@ -15,9 +15,11 @@ const { title, description = "Hadi (CliniqDouala) - Annuaire des cliniques et h√
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="google-site-verification" content="sCysWWnI5zEJRrXpK5ij1NFGuMVSeyTp1LI2wFNxUVI" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title} | Hadi</title>
 		<meta name="description" content={description} />
+		<slot name="head" />
 	</head>
 	<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col">
 		<header class="bg-white shadow-sm border-b border-gray-200">

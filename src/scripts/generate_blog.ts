@@ -8,11 +8,11 @@ const geminiKey = process.env.GEMINI_API_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const TOPICS = [
-  "Alerte Grippe à Douala : Comment protéger votre famille face à la flambée actuelle ? (Focus Littoral, 21% de positivité, hygiène)",
-  "Typhoïde et Saison des Pluies : Les réflexes vitaux pour consommer une eau saine à Bépanda et Logpom.",
-  "Vaccination HPV pour les Garçons au Cameroun : Pourquoi le MINSANTE inclut désormais les 9-14 ans ?",
-  "Paludisme à Douala : Préparez votre maison contre les moustiques avant le pic des pluies d'avril.",
-  "Immunité Tropicale : Les meilleurs aliments de nos marchés (Ndolè, Safou, Papaye) pour résister aux virus."
+  "Polio au Cameroun : Tout savoir sur la grande campagne de vaccination du 23 au 26 avril 2026",
+  "Mpox (Variole du Singe) dans le Littoral : Les gestes barrières à adopter d'urgence à Douala",
+  "Révolution Numérique : Ce que le Plan National de Santé 2026-2030 va changer pour votre dossier médical (Plan 2026-2030)",
+  "Hypertension et 'Mort Subite' : Les enseignements du Congrès de Cardiologie de Douala pour les Camerounais",
+  "Urgences Hospitalières à Yaoundé et Douala : Vers une prise en charge plus rapide grâce au projet 'Cure 2'"
 ];
 
 function slugify(text: string) {
