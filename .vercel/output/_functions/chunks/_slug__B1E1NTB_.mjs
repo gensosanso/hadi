@@ -1,7 +1,7 @@
-import { c as createComponent } from './astro-component_BjXtZt79.mjs';
+import { c as createComponent } from './astro-component_BkKKOIMP.mjs';
 import 'piccolore';
-import { m as maybeRenderHead, h as addAttribute, r as renderTemplate, l as renderComponent, n as defineScriptVars, o as Fragment, u as unescapeHTML } from './entrypoint_BdO2rOg1.mjs';
-import { s as supabase, $ as $$Layout } from './supabase_BYyd3oMA.mjs';
+import { m as maybeRenderHead, h as addAttribute, r as renderTemplate, l as renderComponent, n as defineScriptVars, o as Fragment, u as unescapeHTML } from './entrypoint_BnBtdJaR.mjs';
+import { s as supabase, $ as $$Layout } from './supabase_fOwPouCR.mjs';
 import 'clsx';
 
 const $$RelatedClinics = createComponent(async ($$result, $$props, $$slots) => {
@@ -30,8 +30,13 @@ const $$slug = createComponent(async ($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$props, $$slots);
   Astro2.self = $$slug;
   const { slug } = Astro2.params;
-  const { data: post, error } = await supabase.from("blog_posts").select("*").eq("slug", slug).single();
-  if (error || !post) {
+  let post = null;
+  try {
+    const { data, error } = await supabase.from("blog_posts").select("*").eq("slug", slug).single();
+    if (error || !data) throw new Error("Post not found");
+    post = data;
+  } catch (err) {
+    console.error("Error fetching post:", err);
     return Astro2.redirect("/404");
   }
   const imagePool = [

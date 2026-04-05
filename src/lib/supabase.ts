@@ -1,15 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/supabase';
 
-// Utilisation de process.env en priorité pour la compatibilité Vercel/Node
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || process.env.PUBLIC_SUPABASE_ANON_KEY;
+// Helper pour éviter les crashs pendant le build Vercel
+const getEnv = (key: string) => {
+  if (typeof import.meta.env !== 'undefined' && import.meta.env[key]) return import.meta.env[key];
+  if (typeof process !== 'undefined' && process.env[key]) return process.env[key];
+  return undefined;
+};
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('CRITICAL: Supabase credentials missing!');
-}
+const supabaseUrl = getEnv('PUBLIC_SUPABASE_URL') || 'https://placeholder-build.supabase.co';
+const supabaseAnonKey = getEnv('PUBLIC_SUPABASE_ANON_KEY') || 'placeholder-key';
 
-export const supabase = createClient<Database>(
-  supabaseUrl || 'https://placeholder.supabase.co', 
-  supabaseAnonKey || 'placeholder'
-);
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);

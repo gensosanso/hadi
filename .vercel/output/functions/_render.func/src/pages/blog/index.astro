@@ -4,15 +4,22 @@ import { supabase } from '../../lib/supabase';
 
 export const prerender = false;
 
-// Fetch published posts
-const { data: posts, error } = await supabase
-  .from('blog_posts')
-  .select('*')
-  .lte('published_at', new Date().toISOString())
-  .order('published_at', { ascending: false });
+let posts: any[] = [];
+let fetchError = false;
 
-if (error) {
-  console.error('Error fetching posts:', error);
+try {
+  // Fetch published posts
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .lte('published_at', new Date().toISOString())
+    .order('published_at', { ascending: false });
+  
+  if (error) throw error;
+  posts = data || [];
+} catch (err) {
+  console.error('Error fetching posts:', err);
+  fetchError = true;
 }
 
 // Pool d'images médicales ultra-fiables (Unsplash IDs simplifiés)

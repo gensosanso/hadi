@@ -1,6 +1,6 @@
-import { c as createComponent } from './astro-component_BjXtZt79.mjs';
+import { c as createComponent } from './astro-component_BkKKOIMP.mjs';
 import 'piccolore';
-import { h as addAttribute, p as renderSlot, q as renderHead, r as renderTemplate } from './entrypoint_BdO2rOg1.mjs';
+import { h as addAttribute, q as renderSlot, v as renderHead, r as renderTemplate } from './entrypoint_BnBtdJaR.mjs';
 import 'clsx';
 import { createClient } from '@supabase/supabase-js';
 
@@ -14,6 +14,9 @@ const $$Layout = createComponent(($$result, $$props, $$slots) => {
 
 const supabaseUrl = "https://cjwjwytfbxoeigtzmyfs.supabase.co";
 const supabaseAnonKey = "sb_publishable_2TH_GDpsO058ZOFynrRItg_QVQZCjoj";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(
+  supabaseUrl,
+  supabaseAnonKey
+);
 
 export { $$Layout as $, supabase as s };

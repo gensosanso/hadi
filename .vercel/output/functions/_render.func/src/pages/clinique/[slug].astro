@@ -284,9 +284,15 @@ const geo = {
   </div>
 
   <script define:vars={{ slug, geo }}>
+    window.HADI_DATA = { slug, geo };
+  </script>
+
+  <script>
     import { trackEvent } from '../../lib/analytics';
     
-    // Track Page View (View)
+    const { slug, geo } = (window as any).HADI_DATA;
+
+    // Track Page View
     trackEvent('view', slug, window.location.pathname, geo);
 
     // Track Call Click

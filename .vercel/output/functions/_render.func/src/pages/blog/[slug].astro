@@ -7,14 +7,20 @@ export const prerender = false;
 
 const { slug } = Astro.params;
 
-// Fetch full post data
-const { data: post, error } = await supabase
-  .from('blog_posts')
-  .select('*')
-  .eq('slug', slug)
-  .single();
+let post: any = null;
 
-if (error || !post) {
+try {
+  // Fetch full post data
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+  
+  if (error || !data) throw new Error('Post not found');
+  post = data;
+} catch (err) {
+  console.error('Error fetching post:', err);
   return Astro.redirect('/404');
 }
 

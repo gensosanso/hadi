@@ -3,27 +3,19 @@ import Layout from '../../layouts/Layout.astro';
 import ClinicCard from '../../components/ClinicCard.astro';
 import { supabase } from '../../lib/supabase';
 
-export async function getStaticPaths() {
-  const { data: clinics } = await supabase
-    .from('clinics_enriched')
-    .select('quartier');
+export const prerender = false;
 
-  // Filtrer les quartiers uniques et non nuls
-  const quartiers = [...new Set(clinics?.map(c => c.quartier).filter(Boolean))];
+const { slug } = Astro.params;
 
-  return quartiers.map((q) => ({
-    params: { slug: q?.toLowerCase().replace(/\s+/g, '-') },
-    props: { quartierName: q },
-  }));
-}
-
-const { quartierName } = Astro.props;
+// Reconstituer le nom du quartier à partir du slug (méthode simple)
+const quartierName = slug?.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
 // Fetch clinics for this specific quartier
 const { data: clinics, error } = await supabase
   .from('clinics_enriched')
   .select('*')
-  .eq('quartier', quartierName)
+  // On utilise ilike pour être plus flexible avec le slug
+  .ilike('quartier', quartierName || '')
   .order('nom', { ascending: true });
 ---
 
