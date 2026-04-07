@@ -4,21 +4,33 @@ import { supabase } from '../../lib/supabase';
 
 // Admin check: you can add email check here later
 // For now, let's list all clinics to manage their plans
-const { data: clinics, error } = await supabase
-  .from('clinics_enriched')
-  .select('id, nom, slug, plan, verified, featured_order, quartier')
-  .order('nom', { ascending: true });
+let clinics: any[] | null = [];
+let campaigns: any[] | null = [];
+let events: any[] | null = [];
 
-// Also fetch campaigns
-const { data: campaigns } = await supabase
-  .from('campaigns')
-  .select('*')
-  .order('created_at', { ascending: false });
+try {
+  const { data: clinicsData, error: clinicsError } = await supabase
+    .from('clinics_enriched')
+    .select('id, nom, slug, plan, verified, featured_order, quartier')
+    .order('nom', { ascending: true });
+  if (clinicsError) throw clinicsError;
+  clinics = clinicsData;
 
-// Fetch basic analytics counts
-const { data: events } = await supabase
-  .from('analytics_events')
-  .select('event_type, clinic_slug');
+  const { data: campaignsData, error: campaignsError } = await supabase
+    .from('campaigns')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (campaignsError) throw campaignsError;
+  campaigns = campaignsData;
+
+  const { data: eventsData, error: eventsError } = await supabase
+    .from('analytics_events')
+    .select('event_type, clinic_slug, page_url');
+  if (eventsError) throw eventsError;
+  events = eventsData;
+} catch (err) {
+  console.error('Error fetching admin data:', err);
+}
 
 // Process analytics per clinic
 const clinicStats = events?.reduce((acc: Record<string, any>, curr) => {
@@ -36,8 +48,8 @@ const totalClicks = events?.filter(e => e.event_type === 'call_click' || e.event
 
 // Top Searches (logic to extract from page_url if needed or event_type search)
 // For now let's focus on Top Neighborhoods from page_url
-const neighborhoodVisits = events?.filter(e => e.page_url?.includes('/quartier/'))
-  .reduce((acc: Record<string, number>, curr) => {
+const filteredNeighborhoodEvents = events?.filter(e => e.page_url?.includes('/quartier/')) || [];
+const neighborhoodVisits = filteredNeighborhoodEvents.reduce((acc: Record<string, number>, curr) => {
     const q = curr.page_url?.split('/').pop()?.replace(/-/g, ' ') || 'Inconnu';
     acc[q] = (acc[q] || 0) + 1;
     return acc;

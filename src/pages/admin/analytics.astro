@@ -4,11 +4,21 @@ import { supabase } from '../../lib/supabase';
 
 export const prerender = false;
 
-// Fetch Analytics Data
-const { data: events } = await supabase
-  .from('analytics_events')
-  .select('*')
-  .order('created_at', { ascending: false });
+let events: any[] | null = [];
+
+try {
+  // Fetch Analytics Data
+  const { data, error } = await supabase
+    .from('analytics_events')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) throw error;
+  events = data;
+} catch (err) {
+  console.error('Error fetching analytics:', err);
+  events = [];
+}
 
 // Simple Aggregations
 const stats = {
@@ -29,7 +39,8 @@ const topCities = Object.entries(cityCounts || {})
   .slice(0, 5);
 
 // Top Clinics
-const clinicCounts = events?.filter(e => e.clinic_slug !== 'global').reduce((acc: any, e: any) => {
+const filteredEvents = events?.filter(e => e.clinic_slug !== 'global') || [];
+const clinicCounts = filteredEvents.reduce((acc: any, e: any) => {
   acc[e.clinic_slug] = (acc[e.clinic_slug] || 0) + 1;
   return acc;
 }, {});

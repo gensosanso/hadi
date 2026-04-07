@@ -1,0 +1,42 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout 
+  title="Page Non Trouvée - 404" 
+  description="Désolé, la page que vous recherchez n'existe pas ou a été déplacée."
+>
+  <div class="max-w-4xl mx-auto px-4 py-24 text-center">
+    <div class="mb-8">
+      <span class="text-9xl">🏥</span>
+    </div>
+    <h1 class="text-6xl font-black text-gray-900 mb-6 tracking-tight">
+      Oups ! <span class="text-blue-600">404</span>
+    </h1>
+    <p class="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+      Désolé, nous n'avons pas trouvé la page que vous cherchez. 
+      Il est possible que l'établissement ait changé de nom ou que le lien soit rompu.
+    </p>
+    
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a 
+        href="/" 
+        class="px-8 py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition transform active:scale-95"
+      >
+        Retour à l'Accueil
+      </a>
+      <a 
+        href="/contact" 
+        class="px-8 py-4 bg-white border-2 border-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition transform active:scale-95"
+      >
+        Signaler un problème
+      </a>
+    </div>
+
+    <div class="mt-24 pt-12 border-t border-gray-100">
+      <p class="text-sm text-gray-400 font-medium italic">
+        "La santé est le premier des biens."
+      </p>
+    </div>
+  </div>
+</Layout>

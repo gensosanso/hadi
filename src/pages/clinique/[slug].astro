@@ -7,23 +7,34 @@ export const prerender = false;
 
 const { slug } = Astro.params;
 
-// Fetch full clinic data
-const { data: clinic, error } = await supabase
-  .from('clinics_enriched')
-  .select('*')
-  .eq('slug', slug)
-  .single();
+let clinic: any = null;
+let reviews: any[] | null = [];
 
-if (error || !clinic) {
+try {
+  // Fetch full clinic data
+  const { data: clinicData, error: clinicError } = await supabase
+    .from('clinics_enriched')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+
+  if (clinicError || !clinicData) {
+    return Astro.redirect('/404');
+  }
+  clinic = clinicData;
+
+  // Fetch reviews for this clinic
+  const { data: reviewsData } = await supabase
+    .from('reviews')
+    .select('*')
+    .eq('clinic_slug', slug)
+    .order('created_at', { ascending: false });
+  
+  reviews = reviewsData;
+} catch (err) {
+  console.error('Error fetching clinic details:', err);
   return Astro.redirect('/404');
 }
-
-// Fetch reviews for this clinic
-const { data: reviews } = await supabase
-  .from('reviews')
-  .select('*')
-  .eq('clinic_slug', slug)
-  .order('created_at', { ascending: false });
 
 // Formatting helpers
 const formatSpecialties = (types: string[] | null) => {

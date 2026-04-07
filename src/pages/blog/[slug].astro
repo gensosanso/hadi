@@ -103,7 +103,7 @@ const postSchema = {
     <header class="mb-12">
       <div class="aspect-video md:aspect-[21/9] rounded-3xl overflow-hidden mb-8 relative group shadow-2xl bg-gray-100">
         <img 
-          src={post.main_image.startsWith('http') ? post.main_image : getImageUrl(post.id, 1200)} 
+          src={(post.main_image && post.main_image.startsWith('http')) ? post.main_image : getImageUrl(post.id, 1200)} 
           alt={post.title}
           class="w-full h-full object-cover transition duration-700 group-hover:scale-105"
           loading="lazy"

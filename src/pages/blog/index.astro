@@ -62,7 +62,7 @@ function getImageUrl(id: string, width = 800) {
           <article class="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col group">
             <div class="aspect-video bg-gray-100 relative overflow-hidden">
               <img 
-                src={post.main_image.startsWith('http') ? post.main_image : getImageUrl(post.id, 800)} 
+                src={(post.main_image && post.main_image.startsWith('http')) ? post.main_image : getImageUrl(post.id, 800)} 
                 alt={post.title}
                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 loading="lazy"

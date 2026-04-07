@@ -3,13 +3,17 @@ import Layout from '../../../layouts/Layout.astro';
 import { supabase } from '../../../lib/supabase';
 
 // Fetch all blog posts
-const { data: posts, error } = await supabase
-  .from('blog_posts')
-  .select('id, title, slug, main_image, specialty_tag, published_at')
-  .order('published_at', { ascending: false });
-
-if (error) {
-  console.error('Error fetching blog posts:', error);
+let posts: any[] | null = [];
+try {
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .select('id, title, slug, main_image, specialty_tag, published_at')
+    .order('published_at', { ascending: false });
+  
+  if (error) throw error;
+  posts = data;
+} catch (err) {
+  console.error('Error fetching blog posts:', err);
 }
 ---
 
